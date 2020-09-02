@@ -361,6 +361,30 @@ public final class ZeebeRuntimeValidationTest {
             expect(
                 StartEvent.class,
                 "Expected constant expression of type String for message name '=false', but was BOOLEAN"))
+      },
+      {
+        /* invalid variable input mapping */
+        Bpmn.createExecutableProcess("process")
+            .startEvent()
+            .serviceTask(
+                "task", task -> task.zeebeJobType("test").zeebeInputExpression("x", "null"))
+            .done(),
+        Arrays.asList(
+            expect(
+                ZeebeInput.class,
+                "Expected path expression 'null' but is one of the reserved words (null, true, false, function, if, then, else, for, between, instance, of)."))
+      },
+      {
+        /* invalid variable output mapping */
+        Bpmn.createExecutableProcess("process")
+            .startEvent()
+            .serviceTask(
+                "task", task -> task.zeebeJobType("test").zeebeOutputExpression("x", "true"))
+            .done(),
+        Arrays.asList(
+            expect(
+                ZeebeOutput.class,
+                "Expected path expression 'true' but is one of the reserved words (null, true, false, function, if, then, else, for, between, instance, of)."))
       }
     };
   }
