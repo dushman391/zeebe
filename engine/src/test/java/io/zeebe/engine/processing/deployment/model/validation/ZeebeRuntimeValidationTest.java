@@ -16,6 +16,7 @@ import io.zeebe.engine.processing.common.ExpressionProcessor;
 import io.zeebe.engine.processing.common.ExpressionProcessor.VariablesLookup;
 import io.zeebe.model.bpmn.Bpmn;
 import io.zeebe.model.bpmn.BpmnModelInstance;
+import io.zeebe.model.bpmn.instance.BoundaryEvent;
 import io.zeebe.model.bpmn.instance.ConditionExpression;
 import io.zeebe.model.bpmn.instance.StartEvent;
 import io.zeebe.model.bpmn.instance.TimerEventDefinition;
@@ -333,6 +334,59 @@ public final class ZeebeRuntimeValidationTest {
             expect(
                 StartEvent.class,
                 INVALID_TIMER_START_EVENT_EXPRESSION_MESSAGE + "Repetition spec must start with R"))
+      },
+      {
+        // timer start event with invalid cycle
+        Bpmn.createExecutableProcess("process").startEvent().timerWithCycle("\"foo\"").done(),
+        Arrays.asList(
+            expect(
+                StartEvent.class,
+                INVALID_TIMER_START_EVENT_EXPRESSION_MESSAGE + "Repetition spec must start with R"))
+      },
+      {
+        // timer start event with invalid date
+        Bpmn.createExecutableProcess("process").startEvent().timerWithDate("\"foo\"").done(),
+        Arrays.asList(
+            expect(
+                StartEvent.class,
+                INVALID_TIMER_START_EVENT_EXPRESSION_MESSAGE + "Invalid date format"))
+      },
+      {
+        // timer start event with invalid date expression
+        Bpmn.createExecutableProcess("process")
+            .startEvent()
+            .timerWithDateExpression("\"foo\"")
+            .done(),
+        Arrays.asList(
+            expect(
+                StartEvent.class,
+                INVALID_TIMER_START_EVENT_EXPRESSION_MESSAGE + "Invalid date expression"))
+      },
+      {
+        // timer boundary event with invalid cycle
+        Bpmn.createExecutableProcess("process")
+            .startEvent()
+            .serviceTask("task", t -> t.zeebeJobType("test"))
+            .boundaryEvent()
+            .timerWithCycle("\"foo\"")
+            .done(),
+        Arrays.asList(
+            expect(
+                BoundaryEvent.class,
+                INVALID_TIMER_START_EVENT_EXPRESSION_MESSAGE + "Repetition spec must start with R"))
+      },
+      {
+        // timer boundary event with invalid duration
+        Bpmn.createExecutableProcess("process")
+            .startEvent()
+            .serviceTask("task", t -> t.zeebeJobType("test"))
+            .boundaryEvent()
+            .timerWithDuration("\"foo\"")
+            .done(),
+        Arrays.asList(
+            expect(
+                BoundaryEvent.class,
+                INVALID_TIMER_START_EVENT_EXPRESSION_MESSAGE + "Invalid duration"))
       },
       {
         /* message on start event has expression that contains a variable reference
